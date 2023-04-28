@@ -7,6 +7,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Deploy
-      uses: rtCamp/action-deploy-frappe@master
+      uses: rtCamp/action-deploy-frappe@main
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY}}
