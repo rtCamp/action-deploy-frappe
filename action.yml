@@ -1,0 +1,14 @@
+name: "Deploy Frappe"
+description: "Deploy Frappe code to a server"
+author: "rtCamp"
+outputs:
+  out:
+    description: output
+runs:
+  using: "docker"
+  #image: "Dockerfile"
+  image: 'docker://ghcr.io/xieyt/action_deploy_frappe:1.0.0'
+
+branding:
+  icon: "upload-cloud"
+  color: "yellow"
