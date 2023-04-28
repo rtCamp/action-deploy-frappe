@@ -57,7 +57,7 @@ Variable          | Default | Possible  Values                                  
 
 ## License
 
-[MIT](LICENSE) © 2022 rtCamp
+[MIT](LICENSE) © 2023 rtCamp
 
 ## Does this interest you?
 
