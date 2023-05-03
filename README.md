@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Deploy
-        uses: xieyt/action-deploy-frappe
+        uses: rtcamp/action-deploy-frappe@main
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 ```
