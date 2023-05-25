@@ -1,54 +1,48 @@
-FROM ubuntu:22.04@sha256:965fbcae990b0467ed5657caceaec165018ef44a4d2d46c7cdea80a9dff0d1ea
-
-ARG DEBIAN_FRONTEND=noninteractive
+FROM node:gallium-alpine as node
+FROM alpine:latest
 
 LABEL "com.github.actions.icon"="upload-cloud"
 LABEL "com.github.actions.color"="yellow"
 LABEL "com.github.actions.name"="Deploy Frappe"
 LABEL "com.github.actions.description"="Deploy Frappe code to a server"
-LABEL "org.opencontainers.image.source"="https://github.com/Xieyt/action-deploy-frappe"
+LABEL "org.opencontainers.image.source"="https://github.com/rtcamp/action-deploy-frappe"
 
-
-RUN apt update && \
-    apt install --no-install-recommends -y \
+RUN apk update && \
+    apk --no-cache add \
+        build-base \
         bash \
         git \
-        build-essential \
-        python3-dev \
-        wget \
-        vim \
         curl \
+        gnupg \
+        py3-pip \
         openssh-client \
         jq \
         rsync \
         zip \
         unzip \
-        wkhtmltopdf \
-        gnupg \
-        python3-pip \
-        python3-venv \
-        software-properties-common && \
-        pip3 install shyaml frappe-bench && \
-        rm -rf /var/lib/apt/lists/*
+        py3-virtualenv \
+        python3-dev \
+        linux-headers \
+        yarn \
+        busybox-suid
 
-SHELL ["bash","-c"]
-
-# adduser frappe
-RUN useradd -s /bin/bash -m -p frappe frappe
-
-## yarn install
-RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-RUN apt update
-RUN apt install -y yarn
+RUN pip3 install shyaml frappe-bench
+RUN pip3 install --upgrade pip psutil
 
 
-# nvm
-RUN mkdir -p /opt/nvm
-ENV NVM_DIR="/opt/nvm"
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
-RUN source /opt/nvm/nvm.sh && nvm install --lts=gallium && nvm use --lts=gallium && n=$(which node);n=${n%/bin/node}; chmod -R 755 $n/bin/*; cp -r $n/{bin,lib,share} /usr/local
+# users
+RUN addgroup -g 1000 frappe
+RUN adduser -D -h /home/frappe -G frappe -s /bin/bash -u 1000 frappe
 
+# node 16
+COPY --from=node /usr/lib /usr/lib
+COPY --from=node /usr/local/share /usr/local/share
+COPY --from=node /usr/local/lib /usr/local/lib
+COPY --from=node /usr/local/include /usr/local/include
+COPY --from=node /usr/local/bin /usr/local/bin
+
+# cron
+RUN touch /var/spool/cron/crontabs/frappe && chown -R frappe: /var/spool/cron/crontabs/frappe
 
 COPY hosts.yml /
 COPY *.sh /
