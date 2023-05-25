@@ -17,10 +17,10 @@ setup_frappe() {
     rsync -azh  $GITHUB_WORKSPACE/ $HOME/$APP_NAME
     RSYNC_STATUS=$?
     if ! [ $RSYNC_STATUS -eq 0 ]; then
-        echo "${RED}RSYNC: FAILED${ENDCOLOR}"
+        echo -e "${RED}RSYNC: FAILED${ENDCOLOR}"
         exit 1
     fi
-    echo "${BLUE}RSYNC: FINISHED${ENDCOLOR}"
+    echo -e "${BLUE}RSYNC: FINISHED${ENDCOLOR}"
 
     cd $HOME
     if ! [[ -n "$FRAPPE_BRANCH" ]]; then
@@ -33,26 +33,26 @@ setup_frappe() {
     bench get-app --skip-assets --resolve-deps $HOME/$APP_NAME
     BUILD_STATUS=$?
     if ! [ $BUILD_STATUS -eq 0 ]; then
-        echo "${RED} $APP_NAME BUILD: FAILED${ENDCOLOR}"
+        echo -e "${RED} $APP_NAME BUILD: FAILED${ENDCOLOR}"
         exit 1
     fi
-    echo "${BLUE} ${APP_NAME} BUILD: FINISHED${ENDCOLOR}"
+    echo -e "${BLUE} ${APP_NAME} BUILD: FINISHED${ENDCOLOR}"
 
     # remove node_modlues in apps
     for app in $(ls -1 apps); do
         rm -rf apps/${app}/node_modules
     done
-    echo "${BLUE}NODE_MODULES: REMOVED${ENDCOLOR}"
+    echo -e "${BLUE}NODE_MODULES: REMOVED${ENDCOLOR}"
 
     mkdir -p $HOME/release
 
     rsync -azh apps $HOME/release/
     RSYNC_STATUS=$?
     if ! [ $RSYNC_STATUS -eq 0 ]; then
-        echo "${RED}RSYNC: FAILED${ENDCOLOR}"
+        echo -e "${RED}RSYNC: FAILED${ENDCOLOR}"
         exit 1
     fi
-    echo "${BLUE}RSYNC: FINISHED${ENDCOLOR}"
+    echo -e "${BLUE}RSYNC: FINISHED${ENDCOLOR}"
 }
 
 remote_execute() {
@@ -92,10 +92,10 @@ remote_deploy_frappe() {
         rsync -azh --exclude 'frappe' $HOME/release/apps/ ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}/releases/${REMOTE_FOLDER_NAME}/
         RSYNC_STATUS=$?
         if ! [ $RSYNC_STATUS -eq 0 ]; then
-            echo "${RED}RSYNC: FAILED${ENDCOLOR}"
+            echo -e "${RED}RSYNC: FAILED${ENDCOLOR}"
             exit 1
         fi
-        echo "${BLUE}RSYNC: FINISHED${ENDCOLOR}"
+        echo -e "${BLUE}RSYNC: FINISHED${ENDCOLOR}"
 
         # getting apps list
         APPS_BENCH_LIST=$(remote_execute "ls -1 apps")
@@ -108,7 +108,7 @@ remote_deploy_frappe() {
         remote_execute "bench --site ${REMOTE_HOST} set-maintenance-mode on"
 
         for app in $(remote_execute "ls -1 releases/${REMOTE_FOLDER_NAME}"); do
-            echo "Handling app  - $app"
+            echo -e "Handling app  - $app"
 
             #check if the app is installed in bench
             #
@@ -116,7 +116,7 @@ remote_deploy_frappe() {
 
             if ! [[ "$APPS_BENCH_LIST" =~ $REGEX_MATCH ]]; then
 
-                        echo "Installing $app in bench"
+                        echo -e "Installing $app in bench"
                         #install the app into bench
                         remote_execute "bench get-app ${REMOTE_PATH}/releases/${REMOTE_FOLDER_NAME}/$app"
             fi
@@ -124,14 +124,14 @@ remote_deploy_frappe() {
             #check if the app is installed in site
             if [[ "$APPS_SITE_LIST" =~ $REGEX_MATCH ]]; then
 
-                echo "Updating $app in $REMOTE_PATH"
+                echo -e "Updating $app in $REMOTE_PATH"
 
                 remote_execute "sudo rm -rf apps/$app"
                 remote_execute "cp -r ${REMOTE_PATH}/releases/${REMOTE_FOLDER_NAME}/$app ${REMOTE_PATH}/apps/"
                 remote_execute "bench build --force --production --app $app"
                 remote_execute "bench --site ${REMOTE_HOST} migrate"
             else
-                echo "Installing $app in $REMOTE_PATH"
+                echo -e "Installing $app in $REMOTE_PATH"
                 remote_execute "bench build --force --production --app $app"
                 remote_execute "bench --site ${REMOTE_HOST} install-app $app"
                 remote_execute "bench --site ${REMOTE_HOST} migrate"
