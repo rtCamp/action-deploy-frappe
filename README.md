@@ -14,7 +14,12 @@ A [GitHub Action](https://github.com/features/actions) to deploy Frappe app on a
 2. Add the following code to the `deploy.yml` file.
 
 ```yml
-on: push
+on: 
+  push:
+    branches:
+      - main
+      - staging
+
 name: Deploying Frappe Site
 jobs:
   deploy:
@@ -35,12 +40,18 @@ jobs:
 
 ```yml
 main:
-  hostname: example.com 
+  hostname: production.com 
   user: frappe
-  deploy_path: /home/frappe/bench
+  deploy_path: /home/frappe/production
+
+staging:
+  hostname: staging.com 
+  user: frappe
+  deploy_path: /home/frappe/staging
 
 ```
 
+Here your hostname is equivalent to site name in your frappe bench.
 Make sure you explictly define GitHub branch mapping. Only the GitHub branches mapped in `hosts.yml` will be deployed, rest will be filtered out.
 
 ## Environment Variables
@@ -49,11 +60,12 @@ This GitHub action's behavior can be customized using following environment vari
 
 Variable          | Default | Possible  Values                                                    | Purpose
 ------------------|---------|---------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-`FRAPPE_BRANCH`  | develop | Valid Frappe Branch | Frappe branch. If not specified, default branch **develop** will be used.
+`FRAPPE_BRANCH`  | version-14 | Valid Frappe Branch | Frappe branch. If not specified, default branch **version-14** will be used.
 
 ## Limitations
-- Only supports one branch deploy for now.
-- Building app might break when using github hosted runner for app like insights. (lack of ram)
+
+- Only supports one site per bench.
+- Building app might break when using github hosted runner for complex apps like insights. (lack of ram)
 
 ## License
 
