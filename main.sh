@@ -11,7 +11,7 @@ CUSTOM_SCRIPT_DIR="$GITHUB_WORKSPACE/.github/deploy"
 function init_checks() {
 
 	# Check if branch is available
-	if [[ "$GITHUB_REF" = "" ]]; then
+	if [[ "$GITHUB_REF" == "" ]]; then
 		echo "\$GITHUB_REF is not set"
 		exit 1
 	fi
@@ -45,11 +45,12 @@ function check_branch_in_hosts_file() {
 
 	match=0
 	for branch in $(cat "$hosts_file" | shyaml keys); do
-		[[ "$GITHUB_REF" = "refs/heads/$branch" ]] &&
+		[[ "$GITHUB_REF" == "refs/heads/$branch" ]] &&
 			echo "$GITHUB_REF matches refs/heads/$branch" &&
 			match=1
 	done
 
+	# check if the deploy branch is same
 	# Exit neutral if no match found
 	if [[ "$match" -eq 0 ]]; then
 		echo "$GITHUB_REF does not match with any given branch in 'hosts.yml'"
@@ -180,10 +181,7 @@ function main() {
 	setup_hosts_file
 	check_branch_in_hosts_file
 	setup_ssh_access
-	#maybe_install_submodules
+	run_deploy_sh
 
 }
-
 main
-run_deploy_sh
-#su frappe -c "bash /deploy.sh"
