@@ -6,8 +6,8 @@ outputs:
     description: output
 runs:
   using: "docker"
-  image: "Dockerfile"
-  #image: 'docker://ghcr.io/rtcamp/action-deploy-frappe:v0.0.1'
+  #image: "Dockerfile"
+  image: 'docker://ghcr.io/rtcamp/action-deploy-frappe:v0.0.2'
 
 branding:
   icon: "upload-cloud"
