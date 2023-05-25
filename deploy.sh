@@ -2,10 +2,10 @@ set -ex
 
 export TERM=xterm-color
 
-RED="\e[31m"
-GREEN="\e[32m"
-BLUE="\e[34m"
-ENDCOLOR="\e[0m"
+RED="\033[31m"
+GREEN="\033[32m"
+BLUE="\033[34m"
+ENDCOLOR="\033[0m"
 
 hosts_file="$GITHUB_WORKSPACE/.github/hosts.yml"
 
@@ -24,7 +24,7 @@ setup_frappe() {
 
     cd $HOME
     if ! [[ -n "$FRAPPE_BRANCH" ]]; then
-        FRAPPE_BRANCH=develop
+        FRAPPE_BRANCH="version-14"
     fi
 
     bench init --frappe-branch $FRAPPE_BRANCH --skip-redis-config-generation --no-procfile --no-backups --skip-assets bench
@@ -69,15 +69,15 @@ remote_frappe_branch_handle() {
         # check if the branch is same
         frappe_current_branch=$(remote_execute "cd apps/frappe && git branch --show-current")
         if ! [[ "$frappe_current_branch" == "$FRAPPE_BRANCH" ]]; then
-                remote_execute "bench switch-to-branch --upgrade $FRAPPE_BRANCH frappe "
-                remote_execute "bench update --patch"
+                remote_execute "bench switch-to-branch --upgrade $FRAPPE_BRANCH frappe"
+                remote_execute "bench update --apps frappe"
         fi
     fi
 
 }
 
 remote_deploy_frappe() {
-    for branch in $(cat "$hosts_file" | shyaml keys); do
+        branch=$(echo "$GITHUB_REF" | awk 'BEGIN {FS="/"} ; {print $NF}')
         REMOTE_HOST=$(cat "$hosts_file" | shyaml get-value ${branch}.hostname)
         REMOTE_USER=$(cat "$hosts_file" | shyaml get-value ${branch}.user)
         REMOTE_PATH=$(cat "$hosts_file" | shyaml get-value ${branch}.deploy_path)
@@ -141,8 +141,6 @@ remote_deploy_frappe() {
 
         # site maintenance mode -> on
         remote_execute "bench --site ${REMOTE_HOST} set-maintenance-mode off"
-
-    done
 
     #rsync -rv $GIHUB_WORKSPACE
 }
