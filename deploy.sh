@@ -12,9 +12,9 @@ hosts_file="$GITHUB_WORKSPACE/.github/hosts.yml"
 APP_NAME=$(echo "$GITHUB_REPOSITORY" | sed 's:.*/::' )
 setup_frappe() {
 
-    mkdir -p "$HOME/$APP_NAME"
+    mkdir -p "${HOME}/${APP_NAME}"
 
-    rsync -azh  "$GITHUB_WORKSPACE/ $HOME/$APP_NAME"
+    rsync -azh  "${GITHUB_WORKSPACE}/" "${HOME}/${APP_NAME}"
     RSYNC_STATUS=$?
     if ! [ $RSYNC_STATUS -eq 0 ]; then
         echo -e "${RED}RSYNC: FAILED${ENDCOLOR}"
@@ -38,11 +38,6 @@ setup_frappe() {
     fi
     echo -e "${BLUE} ${APP_NAME} BUILD: FINISHED${ENDCOLOR}"
 
-    # remove node_modlues in apps
-    for app in $(ls -1 apps); do
-        rm -rf apps/"$app"/node_modules
-    done
-    echo -e "${BLUE}NODE_MODULES: REMOVED${ENDCOLOR}"
 
     mkdir -p "${HOME}/release"
 
@@ -137,6 +132,10 @@ remote_deploy_frappe() {
                 remote_execute "bench --site ${REMOTE_HOST} install-app $app"
                 remote_execute "bench --site ${REMOTE_HOST} migrate"
             fi
+
+            # remove node_modules from each apps
+            remote_execute "rm -rf ${REMOTE_PATH}/releases/${REMOTE_FOLDER_NAME}/${app}/node_modules ${REMOTE_PATH}/releases/${REMOTE_FOLDER_NAME}/${app}/yarn.lock"
+            echo -e "${BLUE}CLEANUP-> REMOVED: ${REMOTE_PATH}/releases/${REMOTE_FOLDER_NAME}/${app}/node_modules ${REMOTE_PATH}/releases/${REMOTE_FOLDER_NAME}/${app}/yarn.lock${ENDCOLOR}"
 
         done
 
