@@ -76,6 +76,7 @@ remote_deploy_frappe() {
         branch=$(echo "$GITHUB_REF" | awk 'BEGIN {FS="/"} ; {print $NF}')
         REMOTE_HOST=$(shyaml get-value "${branch}.hostname" < "$hosts_file")
         REMOTE_USER=$(shyaml get-value "${branch}.user" < "$hosts_file")
+        REMOTE_SITE=$(shyaml get-avalue "${branch}.site_name" < "$hosts_file")
         REMOTE_PATH=$(shyaml get-value "${branch}.deploy_path" < "$hosts_file")
 
         ssh-keyscan -H "$REMOTE_HOST" >>/home/frappe/.ssh/known_hosts
@@ -93,15 +94,26 @@ remote_deploy_frappe() {
         fi
         echo -e "${BLUE}RSYNC: FINISHED${ENDCOLOR}"
 
+        # give priority to REMOTE_SITE
+        # use REMOTE_HOST as fallback
+        # check if site exist
+
+        SITE_EXIST_STRING=$(remote_execute "bench --site ${REMOTE_SITE} scheduler status")
+        if [[ "$SITE_EXIST_STRING" == *"does not exist!"* ]]; then
+            echo -e  "${RED} Site: ${REMOTE_SITE} does not exist !!${ENDCOLOR}"
+            exit 1
+        fi
+
+
         # getting apps list
         APPS_BENCH_LIST=$(remote_execute "ls -1 apps")
-        BENCH_LIST_OUTPUT=$(remote_execute "bench --site ${REMOTE_HOST} list-apps -f json")
-        APPS_SITE_LIST=$(echo "$BENCH_LIST_OUTPUT" | jq -cr ".\"${REMOTE_HOST}\" | .[]")
+        BENCH_LIST_OUTPUT=$(remote_execute "bench --site ${REMOTE_SITE} list-apps -f json")
+        APPS_SITE_LIST=$(echo "$BENCH_LIST_OUTPUT" | jq -cr ".\"${REMOTE_SITE}\" | .[]")
 
         remote_frappe_branch_handle
 
         # site maintenance mode -> on
-        remote_execute "bench --site ${REMOTE_HOST} set-maintenance-mode on"
+        remote_execute "bench --site ${REMOTE_SITE} set-maintenance-mode on"
 
         for app in $(remote_execute "ls -1 releases/${REMOTE_FOLDER_NAME}"); do
             echo -e "Handling app  - $app"
@@ -125,12 +137,12 @@ remote_deploy_frappe() {
                 remote_execute "rm -rf apps/$app"
                 remote_execute "cp -r ${REMOTE_PATH}/releases/${REMOTE_FOLDER_NAME}/$app ${REMOTE_PATH}/apps/"
                 remote_execute "bench build --force --production --app $app"
-                remote_execute "bench --site ${REMOTE_HOST} migrate"
+                remote_execute "bench --site ${REMOTE_SITE} migrate"
             else
                 echo -e "Installing $app in $REMOTE_PATH"
                 remote_execute "bench build --force --production --app $app"
-                remote_execute "bench --site ${REMOTE_HOST} install-app $app"
-                remote_execute "bench --site ${REMOTE_HOST} migrate"
+                remote_execute "bench --site ${REMOTE_SITE} install-app $app"
+                remote_execute "bench --site ${REMOTE_SITE} migrate"
             fi
 
             # remove node_modules from each apps
@@ -140,7 +152,7 @@ remote_deploy_frappe() {
         done
 
         # site maintenance mode -> on
-        remote_execute "bench --site ${REMOTE_HOST} set-maintenance-mode off"
+        remote_execute "bench --site ${REMOTE_SITE} set-maintenance-mode off"
 
     #rsync -rv $GIHUB_WORKSPACE
 }
