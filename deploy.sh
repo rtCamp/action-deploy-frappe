@@ -76,7 +76,7 @@ remote_deploy_frappe() {
         branch=$(echo "$GITHUB_REF" | awk 'BEGIN {FS="/"} ; {print $NF}')
         REMOTE_HOST=$(shyaml get-value "${branch}.hostname" < "$hosts_file")
         REMOTE_USER=$(shyaml get-value "${branch}.user" < "$hosts_file")
-        REMOTE_SITE=$(shyaml get-avalue "${branch}.site_name" < "$hosts_file")
+        REMOTE_SITE=$(shyaml get-value "${branch}.site_name" < "$hosts_file")
         REMOTE_PATH=$(shyaml get-value "${branch}.deploy_path" < "$hosts_file")
 
         ssh-keyscan -H "$REMOTE_HOST" >>/home/frappe/.ssh/known_hosts
