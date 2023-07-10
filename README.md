@@ -36,31 +36,45 @@ jobs:
 3. Create `SSH_PRIVATE_KEY` secret
    using [GitHub Action's Secret](https://developer.github.com/actions/creating-workflows/storing-secrets) and store the
    private key that you use use to ssh to server(s) defined in `hosts.yml`.
+
 4. Create `.github/hosts.yml` inventory file, based on 
 
 ```yml
 main:
   hostname: production.com 
   user: frappe
+  site_name: production-site.com
   deploy_path: /home/frappe/production
 
 staging:
   hostname: staging.com 
   user: frappe
+  site_name: staging-site.com
   deploy_path: /home/frappe/staging
 
 ```
 
-Here your hostname is equivalent to site name in your frappe bench.
 Make sure you explictly define GitHub branch mapping. Only the GitHub branches mapped in `hosts.yml` will be deployed, rest will be filtered out.
+
+## hosts.yml Variables
+- All of these variables are mandatory.
+
+| Variable      | Possible Values | Purpose                                |
+|:-------------:|:---------------:|:--------------------------------------:|
+| `hostname`    | ip or DNS FQDN  | hostname for ssh.                      |
+| `user`        | valid username  | Username for ssh.                      |
+| `site_name`   | site name       | Frappe Site Name for app installation. |
+| `deploy_path` | path            | Bench path.                            |
+
 
 ## Environment Variables
 
 This GitHub action's behavior can be customized using following environment variables:
 
-Variable          | Default | Possible  Values                                                    | Purpose
-------------------|---------|---------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-`FRAPPE_BRANCH`  | version-14 | Valid Frappe Branch | Frappe branch. If not specified, default branch **version-14** will be used.
+| Variable        | Default    | Possible  Values    | Purpose                                                                      |
+|-----------------|------------|---------------------|------------------------------------------------------------------------------|
+| `FRAPPE_BRANCH` | version-14 | Valid Frappe Branch | Frappe branch. If not specified, default branch **version-14** will be used. |
+|                 |            |                     |                                                                              |
 
 ## Limitations
 
