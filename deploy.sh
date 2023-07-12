@@ -153,6 +153,8 @@ remote_deploy_frappe() {
 
         # site maintenance mode -> on
         remote_execute "bench --site ${REMOTE_SITE} set-maintenance-mode off"
+        # bench restart
+        remote_execute "bench restart"
 
     #rsync -rv $GIHUB_WORKSPACE
 }
