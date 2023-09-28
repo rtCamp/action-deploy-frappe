@@ -76,10 +76,13 @@ This GitHub action's behavior can be customized using following environment vari
 | `FRAPPE_BRANCH` | version-14 | Valid Frappe Branch | Frappe branch. If not specified, default branch **version-14** will be used. |
 |                 |            |                     |                                                                              |
 
+## Overriding default deployement behavior
+
+If you need to modify the main.sh shell script of this action, you can create a file at location `.github/deploy/addon.sh` in your git repository. Checkout the [example addon.sh](https://github.com/rtCamp/action-deploy-frappe/blob/master/example/addon.php) to see how to customize.
+
 ## Limitations
 
 - Only supports one site per bench.
-- Building app might break when using github hosted runner for complex apps like insights. (lack of ram)
 
 ## License
 

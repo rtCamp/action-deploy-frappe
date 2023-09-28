@@ -7,6 +7,7 @@ export PROJECT_ROOT="$(pwd)"
 export HTDOCS="$HOME/htdocs"
 export GITHUB_BRANCH=${GITHUB_REF##*heads/}
 CUSTOM_SCRIPT_DIR="$GITHUB_WORKSPACE/.github/deploy"
+JUMPHOST_SERVER=
 
 function init_checks() {
 
@@ -177,11 +178,14 @@ run_deploy_sh() {
 }
 function main() {
 
-	init_checks
-	setup_hosts_file
-	check_branch_in_hosts_file
-	setup_ssh_access
-	run_deploy_sh
-
+	if [[ -f "$CUSTOM_SCRIPT_DIR/addon.sh" ]]; then
+			source "$CUSTOM_SCRIPT_DIR/addon.sh"
+	else
+		init_checks
+		setup_hosts_file
+		check_branch_in_hosts_file
+		setup_ssh_access
+		run_deploy_sh
+	fi
 }
 main
