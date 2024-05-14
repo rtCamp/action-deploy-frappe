@@ -1,0 +1,4 @@
+defaults:
+  - .github/workflows/**
+  - .github/hosts.yml
+  - .github/filters.yml

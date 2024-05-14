@@ -1,14 +1,42 @@
 name: "Deploy Frappe"
 description: "Deploy Frappe code to a server"
 author: "rtCamp"
-outputs:
-  out:
-    description: output
+#outputs:
+#  out:
+#    description: output
 runs:
-  using: "docker"
-  #image: "Dockerfile"
-  image: 'docker://ghcr.io/rtcamp/action-deploy-frappe:v0.0.4'
-
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+      name: Checkout code
+    - name: Init Check and generate filters.yml
+      uses: docker://ghcr.io/rtcamp/action-deploy-frappe:v0.0.4
+      env:
+        INIT_SETUP: true
+    - name: filter paths
+      id: paths
+      shell: bash
+      run: |
+        echo "::set-output name=paths::$(git diff --name-only ${{ github.ref }})"
+        echo "::set-output name=base::${{ github.ref }}"
+        echo "::set-output status=it-worked"
+    - uses: dorny/paths-filter@v2
+      id: changes
+      with:
+        base: ${{ github.ref }}
+        filters: .github/filters.yml
+    - name: Path Filters to Env
+      shell: bash
+      run: |
+        CHANGED_APPS_JSON=$(cat <<'EOF'
+        ${{ toJSON(steps.changes.outputs) }}
+        EOF
+        )
+        CHANGED_APPS=$(echo "$CHANGED_APPS_JSON" | jq .changes)
+        echo "CHANGED_APPS=${CHANGED_APPS}" >> "$GITHUB_ENV"
+    - name: Deploy to remote server
+      id: deploy
+      uses: docker://ghcr.io/rtcamp/action-deploy-frappe:v0.0.4
 branding:
   icon: "upload-cloud"
   color: "yellow"

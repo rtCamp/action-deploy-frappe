@@ -26,8 +26,8 @@ RUN apk update && \
         yarn \
         busybox-suid
 
-RUN pip3 install shyaml frappe-bench
-RUN pip3 install --upgrade pip psutil
+RUN pip3 install --break-system-packages shyaml frappe-bench
+RUN pip3 install --break-system-packages --upgrade pip psutil
 
 
 # users
