@@ -1,4 +1,4 @@
-FROM node:gallium-alpine as node
+FROM node:22-alpine as node
 FROM alpine:latest
 
 LABEL "com.github.actions.icon"="upload-cloud"
@@ -34,7 +34,7 @@ RUN pip3 install --upgrade pip psutil
 RUN addgroup -g 1000 frappe
 RUN adduser -D -h /home/frappe -G frappe -s /bin/bash -u 1000 frappe
 
-# node 16
+# node 22
 COPY --from=node /usr/lib /usr/lib
 COPY --from=node /usr/local/share /usr/local/share
 COPY --from=node /usr/local/lib /usr/local/lib
